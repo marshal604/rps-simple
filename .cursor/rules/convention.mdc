@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+所有的屬性必須定義 interface，不允許使用 any 類型
+每個元件或函數的大小不得超過 200 行
