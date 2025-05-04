@@ -8,6 +8,8 @@ import {
   FlatList,
   Alert,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import RPSPanel from "../components/RPSPanel";
@@ -189,8 +191,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ route }) => {
             );
             if (itemDetails) {
               options.push({
-                type,
-                value: itemId,
+                type: type as any,
+                value: itemId as any,
                 label: `${itemDetails.name} (${type})`,
               });
             }
@@ -258,9 +260,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ route }) => {
   // Render empty state while loading
   if (!npc) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <Text style={styles.loadingText}>載入中...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -294,7 +296,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ route }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeContainer}>
       {/* NPC Info */}
       <View style={styles.npcContainer}>
         <Text style={styles.npcName}>{npc.name}</Text>
@@ -475,7 +477,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ route }) => {
 
       {/* Bet Modal */}
       {renderBetModal()}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -483,6 +485,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9f9f9",
+  },
+  safeContainer: {
+    flex: 1,
+    backgroundColor: "#f9f9f9",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   loadingText: {
     textAlign: "center",
