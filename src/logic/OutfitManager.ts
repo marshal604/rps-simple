@@ -1,64 +1,28 @@
-interface OutfitItem {
-  id: string;
-  name: string;
-  image: string;
-}
-
-interface Outfit {
-  hair: string;
-  top: string;
-  bottom: string;
-  shoes: string;
-  accessory?: string;
-}
+import { OutfitType, OutfitItemType } from "../types/outfit";
 
 interface Inventory {
   owned: {
-    hair: string[];
-    top: string[];
-    bottom: string[];
-    shoes: string[];
-    accessory: string[];
+    base: string[];
   };
-  equipped: Outfit;
+  equipped: OutfitType;
   coins: number;
 }
 
 export class OutfitManager {
   private inventory: Inventory;
-  private outfitCatalog: {
-    hair: OutfitItem[];
-    top: OutfitItem[];
-    bottom: OutfitItem[];
-    shoes: OutfitItem[];
-    accessory: OutfitItem[];
-  };
+  private outfitCatalog: Record<string, OutfitItemType[]>;
 
   constructor(
     initialInventory: Inventory | null,
-    outfitCatalog: {
-      hair: OutfitItem[];
-      top: OutfitItem[];
-      bottom: OutfitItem[];
-      shoes: OutfitItem[];
-      accessory: OutfitItem[];
-    }
+    outfitCatalog: Record<string, OutfitItemType[]>
   ) {
     // Set default inventory if none provided
     this.inventory = initialInventory || {
       owned: {
-        hair: ["hair_1"],
-        top: ["top_1"],
-        bottom: ["bottom_1"],
-        shoes: ["shoes_1"],
-        accessory: ["accessory_1"],
+        base: ["default"],
       },
       equipped: {
-        hair: "hair_1",
-        top: "top_1",
-        bottom: "bottom_1",
-        shoes: "shoes_1",
-        accessory: "accessory_1",
+        base: "default",
       },
       coins: 100,
     };
@@ -72,24 +36,29 @@ export class OutfitManager {
   }
 
   // Get current equipped outfit
-  getEquippedOutfit(): Outfit {
+  getEquippedOutfit(): OutfitType {
     return { ...this.inventory.equipped };
   }
 
   // Get outfit item details
-  getOutfitItemDetails(type: keyof Outfit, id: string): OutfitItem | undefined {
-    const catalog = this.outfitCatalog[type as keyof typeof this.outfitCatalog];
+  getOutfitItemDetails(type: string, id: string): OutfitItemType | undefined {
+    const catalog = this.outfitCatalog[type];
+    if (!catalog) return undefined;
     return catalog.find((item) => item.id === id);
   }
 
   // Add item to inventory
-  addItemToInventory(type: keyof Outfit, itemId: string): boolean {
-    // Check if item exists in catalog
-    const exists = this.outfitCatalog[
-      type as keyof typeof this.outfitCatalog
-    ].some((item) => item.id === itemId);
+  addItemToInventory(type: string, itemId: string): boolean {
+    // Check if type exists in inventory
+    if (!this.inventory.owned[type as keyof typeof this.inventory.owned]) {
+      return false;
+    }
 
-    if (!exists) {
+    // Check if item exists in catalog
+    if (
+      !this.outfitCatalog[type] ||
+      !this.outfitCatalog[type].some((item) => item.id === itemId)
+    ) {
       return false;
     }
 
@@ -110,7 +79,12 @@ export class OutfitManager {
   }
 
   // Equip item
-  equipItem(type: keyof Outfit, itemId: string): boolean {
+  equipItem(type: string, itemId: string): boolean {
+    // Check if type exists
+    if (!this.inventory.owned[type as keyof typeof this.inventory.owned]) {
+      return false;
+    }
+
     // Check if item is owned
     if (
       !this.inventory.owned[type as keyof typeof this.inventory.owned].includes(
@@ -140,7 +114,12 @@ export class OutfitManager {
   }
 
   // Remove item from inventory
-  removeItemFromInventory(type: keyof Outfit, itemId: string): boolean {
+  removeItemFromInventory(type: string, itemId: string): boolean {
+    // Check if type exists
+    if (!this.inventory.owned[type as keyof typeof this.inventory.owned]) {
+      return false;
+    }
+
     // Cannot remove equipped item
     if (this.inventory.equipped[type] === itemId) {
       return false;
@@ -163,7 +142,12 @@ export class OutfitManager {
   }
 
   // Handle betting and receiving items
-  betItem(type: keyof Outfit, itemId: string): boolean {
+  betItem(type: string, itemId: string): boolean {
+    // Check if type exists
+    if (!this.inventory.owned[type as keyof typeof this.inventory.owned]) {
+      return false;
+    }
+
     // Can't bet equipped items
     if (this.inventory.equipped[type] === itemId) {
       return false;
@@ -182,7 +166,7 @@ export class OutfitManager {
   }
 
   // Handle receiving item from a bet win
-  receiveItem(type: keyof Outfit, itemId: string): boolean {
+  receiveItem(type: string, itemId: string): boolean {
     return this.addItemToInventory(type, itemId);
   }
 }

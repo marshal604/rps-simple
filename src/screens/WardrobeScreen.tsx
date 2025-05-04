@@ -10,9 +10,11 @@ import {
   Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import OutfitPreview from "../components/OutfitPreview";
+import CharacterPreview from "../components/CharacterPreview";
+import OutfitDetail from "../components/OutfitDetail";
 import { OutfitManager } from "../logic/OutfitManager";
 import storage from "../utils/storage";
+import { OutfitType, OutfitItemType } from "../types/outfit";
 
 interface WardrobeScreenProps {
   route: {
@@ -22,11 +24,8 @@ interface WardrobeScreenProps {
   };
 }
 
-interface OutfitItem {
-  id: string;
-  name: string;
-  image: string;
-  type: "hair" | "top" | "bottom" | "shoes" | "accessory";
+interface OutfitItem extends OutfitItemType {
+  type: string;
 }
 
 const WardrobeScreen: React.FC<WardrobeScreenProps> = ({ route }) => {
@@ -38,10 +37,18 @@ const WardrobeScreen: React.FC<WardrobeScreenProps> = ({ route }) => {
   const [currentOutfit, setCurrentOutfit] = useState(
     outfitManager.getEquippedOutfit()
   );
-  const [selectedCategory, setSelectedCategory] = useState<
-    "hair" | "top" | "bottom" | "shoes" | "accessory"
-  >("hair");
+  const [selectedCategory, setSelectedCategory] = useState<string>("top");
   const [items, setItems] = useState<OutfitItem[]>([]);
+
+  // 可用的類別
+  const availableCategories = [
+    "face",
+    "eyes",
+    "top",
+    "bottom",
+    "shoes",
+    "accessory",
+  ];
 
   // Load items for selected category
   useEffect(() => {
@@ -98,8 +105,7 @@ const WardrobeScreen: React.FC<WardrobeScreenProps> = ({ route }) => {
         style={[styles.itemContainer, isEquipped && styles.equippedItem]}
         onPress={() => handleEquipItem(item.id)}
       >
-        <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemType}>{getCategoryName(item.type)}</Text>
+        <OutfitDetail item={item} showRarity={true} />
         {isEquipped && <Text style={styles.equippedText}>已裝備</Text>}
       </TouchableOpacity>
     );
@@ -108,14 +114,32 @@ const WardrobeScreen: React.FC<WardrobeScreenProps> = ({ route }) => {
   // Helper to get readable category name
   const getCategoryName = (category: string): string => {
     switch (category) {
-      case "hair":
-        return "髮型";
+      case "face":
+        return "膚色";
+      case "ears":
+        return "耳朵";
+      case "eyebrows":
+        return "眉毛";
+      case "eyes":
+        return "眼睛";
+      case "mouth":
+        return "嘴巴";
       case "top":
         return "上衣";
+      case "topAccessory":
+        return "上衣配件";
       case "bottom":
         return "下身";
+      case "bottomAccessory":
+        return "下身配件";
+      case "socks":
+        return "襪子";
       case "shoes":
         return "鞋子";
+      case "belt":
+        return "皮帶";
+      case "handAccessory":
+        return "手部配件";
       case "accessory":
         return "配件";
       default:
@@ -135,7 +159,7 @@ const WardrobeScreen: React.FC<WardrobeScreenProps> = ({ route }) => {
       <View style={styles.mainContent}>
         {/* Left: Outfit Preview */}
         <View style={styles.previewContainer}>
-          <OutfitPreview outfit={currentOutfit} size="large" />
+          <CharacterPreview outfit={currentOutfit} size="large" />
           <Text style={styles.coinsText}>金幣: {inventory.coins}</Text>
         </View>
 
@@ -146,14 +170,14 @@ const WardrobeScreen: React.FC<WardrobeScreenProps> = ({ route }) => {
             style={styles.categoryScroll}
             showsHorizontalScrollIndicator={false}
           >
-            {["hair", "top", "bottom", "shoes", "accessory"].map((category) => (
+            {availableCategories.map((category) => (
               <TouchableOpacity
                 key={category}
                 style={[
                   styles.categoryButton,
                   selectedCategory === category && styles.activeCategoryButton,
                 ]}
-                onPress={() => setSelectedCategory(category as any)}
+                onPress={() => setSelectedCategory(category)}
               >
                 <Text
                   style={[
@@ -264,37 +288,27 @@ const styles = StyleSheet.create({
   itemContainer: {
     flex: 1,
     margin: 5,
-    padding: 15,
+    padding: 10,
     backgroundColor: "white",
     borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 1,
     elevation: 2,
-    minHeight: 100,
+    minHeight: 120,
   },
   equippedItem: {
     backgroundColor: "#e6f7ff",
     borderColor: "#1890ff",
     borderWidth: 1,
   },
-  itemName: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-    textAlign: "center",
-  },
-  itemType: {
-    fontSize: 14,
-    color: "#666",
-  },
   equippedText: {
     marginTop: 5,
     color: "#52c41a",
     fontWeight: "bold",
+    textAlign: "center",
   },
   backButton: {
     margin: 15,

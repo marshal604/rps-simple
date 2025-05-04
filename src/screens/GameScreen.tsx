@@ -7,13 +7,16 @@ import {
   Modal,
   FlatList,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import RPSPanel from "../components/RPSPanel";
 import DirectionMatch from "../components/DirectionMatch";
-import OutfitPreview from "../components/OutfitPreview";
 import { GameEngine } from "../logic/GameEngine";
 import { OutfitManager } from "../logic/OutfitManager";
+import storage from "../utils/storage";
+import CharacterPreview from "../components/CharacterPreview";
+import { OutfitType } from "../types/outfit";
 
 interface Bet {
   type: "coins" | "hair" | "top" | "bottom" | "shoes" | "accessory";
@@ -327,7 +330,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ route }) => {
         <View style={styles.characterContainer}>
           {/* Left: Player */}
           <View style={styles.playerContainer}>
-            <OutfitPreview
+            <CharacterPreview
               outfit={outfitManager.getEquippedOutfit()}
               size="medium"
             />
@@ -357,7 +360,11 @@ const GameScreen: React.FC<GameScreenProps> = ({ route }) => {
 
           {/* Right: NPC */}
           <View style={styles.npcPreviewContainer}>
-            <OutfitPreview outfit={npc.outfit} size="medium" isNPC={true} />
+            <CharacterPreview
+              outfit={npc.outfit}
+              size="medium"
+              flipHorizontal={true}
+            />
           </View>
         </View>
 

@@ -1,62 +1,11 @@
 {
-  "hair": [
+  "base": [
     {
-      "id": "hair_1",
-      "name": "基本髮型",
-      "image": "hair_1.png"
-    },
-    {
-      "id": "hair_2",
-      "name": "長直髮",
-      "image": "hair_2.png"
-    }
-  ],
-  "top": [
-    {
-      "id": "top_1",
-      "name": "白色T恤",
-      "image": "top_1.png"
-    },
-    {
-      "id": "top_2",
-      "name": "藍色襯衫",
-      "image": "top_2.png"
-    }
-  ],
-  "bottom": [
-    {
-      "id": "bottom_1",
-      "name": "牛仔褲",
-      "image": "bottom_1.png"
-    },
-    {
-      "id": "bottom_2",
-      "name": "黑色短褲",
-      "image": "bottom_2.png"
-    }
-  ],
-  "shoes": [
-    {
-      "id": "shoes_1",
-      "name": "運動鞋",
-      "image": "shoes_1.png"
-    },
-    {
-      "id": "shoes_2",
-      "name": "皮鞋",
-      "image": "shoes_2.png"
-    }
-  ],
-  "accessory": [
-    {
-      "id": "accessory_1",
-      "name": "無",
-      "image": "none.png"
-    },
-    {
-      "id": "accessory_2",
-      "name": "太陽眼鏡",
-      "image": "accessory_2.png"
+      "id": "default",
+      "name": "人物體型",
+      "description": "人物體型",
+      "image": "default.png",
+      "rarity": "common"
     }
   ]
 }

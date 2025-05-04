@@ -5,11 +5,7 @@
       "name": "小明",
       "description": "程式設計師，喜歡穿簡單舒適的衣服",
       "outfit": {
-        "hair": "hair_1",
-        "top": "top_1",
-        "bottom": "bottom_1",
-        "shoes": "shoes_1",
-        "accessory": "accessory_2"
+        "base": "default"
       },
       "betOptions": ["coins", "top", "bottom"],
       "personality": "冷靜、思考型",
@@ -20,13 +16,9 @@
       "name": "小美",
       "description": "設計師，有著獨特的時尚品味",
       "outfit": {
-        "hair": "hair_2",
-        "top": "top_2",
-        "bottom": "bottom_2",
-        "shoes": "shoes_2",
-        "accessory": "accessory_1"
+        "base": "default"
       },
-      "betOptions": ["coins", "hair", "accessory"],
+      "betOptions": ["coins", "top", "accessory"],
       "personality": "活潑、直覺型",
       "rpsStrategy": "pattern"
     }

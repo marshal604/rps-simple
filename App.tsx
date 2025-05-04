@@ -9,19 +9,35 @@ import {
   SafeAreaView,
   ScrollView,
   Image,
+  Dimensions,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import RPSPanel from "./src/components/RPSPanel";
 import DirectionMatch from "./src/components/DirectionMatch";
-import OutfitPreview from "./src/components/OutfitPreview";
 import GameScreen from "./src/screens/GameScreen";
 import WardrobeScreen from "./src/screens/WardrobeScreen";
 import ResultScreen from "./src/screens/ResultScreen";
 import { OutfitManager } from "./src/logic/OutfitManager";
 import storage from "./src/utils/storage";
+import CharacterPreview from "./src/components/CharacterPreview";
+import { OutfitType } from "./src/types/outfit";
+
+// Get screen width for better sizing
+const { width } = Dimensions.get("window");
 
 // Create the navigation stack
 const Stack = createNativeStackNavigator();
+
+// Define NPC type
+interface NPC {
+  id: string;
+  name: string;
+  description: string;
+  outfit: OutfitType;
+  betOptions: string[];
+  personality: string;
+  rpsStrategy: "random" | "pattern";
+}
 
 // Home screen component
 const HomeScreen = ({ navigation }: any) => {
@@ -29,7 +45,9 @@ const HomeScreen = ({ navigation }: any) => {
   const [outfitManager, setOutfitManager] = useState<OutfitManager | null>(
     null
   );
-  const [npcs, setNpcs] = useState<any[]>([]);
+  const [npcs, setNpcs] = useState<NPC[]>([]);
+  const [selectedNpc, setSelectedNpc] = useState<NPC | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Load game data
   useEffect(() => {
@@ -42,6 +60,10 @@ const HomeScreen = ({ navigation }: any) => {
         // Load NPCs
         const npcData = require("./src/data/npcs.json");
         setNpcs(npcData.npcs);
+        // Set the first NPC as selected by default
+        if (npcData.npcs.length > 0) {
+          setSelectedNpc(npcData.npcs[0]);
+        }
 
         // Load player inventory
         const savedInventory = await storage.loadInventory();
@@ -58,11 +80,11 @@ const HomeScreen = ({ navigation }: any) => {
   }, []);
 
   // Start game with selected NPC
-  const startGame = (npcId: string) => {
-    if (!outfitManager) return;
+  const startGame = () => {
+    if (!outfitManager || !selectedNpc) return;
 
     navigation.navigate("Game", {
-      npcId,
+      npcId: selectedNpc.id,
       outfitManager,
     });
   };
@@ -74,6 +96,12 @@ const HomeScreen = ({ navigation }: any) => {
     navigation.navigate("Wardrobe", {
       outfitManager,
     });
+  };
+
+  // Select an NPC
+  const selectNpc = (npc: NPC, index: number) => {
+    setSelectedNpc(npc);
+    setSelectedIndex(index);
   };
 
   // If data is still loading
@@ -97,38 +125,78 @@ const HomeScreen = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* Player Preview */}
+      {/* Opponent area - fixed height for stability */}
+      <View style={styles.opponentArea}>
+        <Text style={styles.sectionTitle}>選擇對手</Text>
+
+        {/* NPC carousel */}
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.carouselContent}
+          onMomentumScrollEnd={(event) => {
+            const index = Math.floor(
+              event.nativeEvent.contentOffset.x / width + 0.5
+            );
+            if (npcs[index]) {
+              setSelectedNpc(npcs[index]);
+              setSelectedIndex(index);
+            }
+          }}
+        >
+          {npcs.map((npc) => (
+            <View key={npc.id} style={styles.npcCarouselItem}>
+              <Text style={styles.npcCarouselName}>{npc.name}</Text>
+              <View style={styles.characterContainer}>
+                <CharacterPreview
+                  outfit={npc.outfit}
+                  size="medium"
+                  flipHorizontal={true}
+                  showName={false}
+                />
+              </View>
+              <Text style={styles.npcCarouselDescription}>
+                {npc.description}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* NPC Selection Indicators */}
+        <View style={styles.npcIndicators}>
+          {npcs.map((npc, index) => (
+            <TouchableOpacity
+              key={npc.id}
+              style={[
+                styles.npcIndicator,
+                selectedIndex === index && styles.npcIndicatorSelected,
+              ]}
+              onPress={() => selectNpc(npc, index)}
+            />
+          ))}
+        </View>
+
+        {/* Battle Button */}
+        <TouchableOpacity style={styles.battleButton} onPress={startGame}>
+          <Text style={styles.battleButtonText}>開始對戰</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Player Preview (at the bottom) */}
       <View style={styles.playerPreview}>
-        <Text style={styles.previewTitle}>你的角色</Text>
-        <OutfitPreview
+        <View style={styles.playerHeader}>
+          <View style={styles.titleContainer}>
+            <Text style={styles.previewTitle}>你的角色</Text>
+          </View>
+          <Text style={styles.coinsText}>
+            金幣: {outfitManager.getInventory().coins}
+          </Text>
+        </View>
+        <CharacterPreview
           outfit={outfitManager.getEquippedOutfit()}
           size="medium"
         />
-        <Text style={styles.coinsText}>
-          金幣: {outfitManager.getInventory().coins}
-        </Text>
-      </View>
-
-      {/* NPC Selection */}
-      <View style={styles.npcSelection}>
-        <Text style={styles.sectionTitle}>選擇對手</Text>
-        <ScrollView style={styles.npcList}>
-          {npcs.map((npc) => (
-            <TouchableOpacity
-              key={npc.id}
-              style={styles.npcItem}
-              onPress={() => startGame(npc.id)}
-            >
-              <View style={styles.npcInfo}>
-                <Text style={styles.npcName}>{npc.name}</Text>
-                <Text style={styles.npcDescription}>{npc.description}</Text>
-              </View>
-              <View style={styles.npcPreview}>
-                <OutfitPreview outfit={npc.outfit} size="small" isNPC={true} />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -145,17 +213,17 @@ export default function App() {
         />
         <Stack.Screen
           name="Game"
-          component={GameScreen}
+          component={GameScreen as any}
           options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Wardrobe"
-          component={WardrobeScreen}
+          component={WardrobeScreen as any}
           options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Result"
-          component={ResultScreen}
+          component={ResultScreen as any}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
@@ -200,64 +268,110 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  playerPreview: {
-    padding: 15,
-    alignItems: "center",
+  opponentArea: {
+    height: 450, // Fixed height to prevent layout issues
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
     backgroundColor: "#f8f9fa",
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  coinsText: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#ff8c00",
-  },
-  npcSelection: {
-    flex: 1,
     padding: 15,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 15,
+    textAlign: "center",
   },
-  npcList: {
-    flex: 1,
+  carouselContent: {
+    alignItems: "center",
   },
-  npcItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "white",
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1,
-    elevation: 2,
+  npcCarouselItem: {
+    width: width - 30, // Adjust for padding
+    alignItems: "center",
   },
-  npcInfo: {
-    flex: 2,
+  characterContainer: {
+    height: 200, // Fixed height for character preview
     justifyContent: "center",
+    alignItems: "center",
   },
-  npcName: {
+  npcCarouselName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  npcCarouselDescription: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 28,
+    paddingHorizontal: 20,
+  },
+  npcIndicators: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 12,
+  },
+  npcIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#ccc",
+    marginHorizontal: 5,
+  },
+  npcIndicatorSelected: {
+    backgroundColor: "#17a2b8",
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  battleButton: {
+    backgroundColor: "#dc3545",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    marginTop: 20,
+    alignSelf: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  battleButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  playerPreview: {
+    padding: 15,
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+    backgroundColor: "#f8f9fa",
+  },
+  playerHeader: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 15,
+    position: "relative",
+  },
+  titleContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 1,
+  },
+  previewTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 5,
   },
-  npcDescription: {
-    fontSize: 14,
-    color: "#666",
-  },
-  npcPreview: {
-    flex: 1,
-    alignItems: "center",
+  coinsText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#ff8c00",
+    position: "absolute",
+    right: 0,
   },
 });

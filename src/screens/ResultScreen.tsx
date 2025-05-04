@@ -9,9 +9,14 @@ import {
   Animated,
   Easing,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import OutfitPreview from "../components/OutfitPreview";
+import {
+  useNavigation,
+  NavigationProp,
+  ParamListBase,
+} from "@react-navigation/native";
+import CharacterPreview from "../components/CharacterPreview";
 import { OutfitManager } from "../logic/OutfitManager";
+import { OutfitType } from "../types/outfit";
 
 interface ResultScreenProps {
   route: {
@@ -19,7 +24,22 @@ interface ResultScreenProps {
       result: "win" | "lose" | "draw";
       outfitManager: OutfitManager;
       playerReward?: {
-        type: "coins" | "hair" | "top" | "bottom" | "shoes" | "accessory";
+        type:
+          | "coins"
+          | "face"
+          | "ears"
+          | "eyebrows"
+          | "eyes"
+          | "mouth"
+          | "top"
+          | "topAccessory"
+          | "bottom"
+          | "bottomAccessory"
+          | "socks"
+          | "shoes"
+          | "belt"
+          | "handAccessory"
+          | "accessory";
         value: string | number;
       };
       npcId: string;
@@ -28,7 +48,7 @@ interface ResultScreenProps {
 }
 
 const ResultScreen: React.FC<ResultScreenProps> = ({ route }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const { result, outfitManager, playerReward, npcId } = route.params;
 
   // Animation values
@@ -63,7 +83,7 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ route }) => {
   const handleBackToMenu = () => {
     navigation.reset({
       index: 0,
-      routes: [{ name: "Home" as never }],
+      routes: [{ name: "Home" }],
     });
   };
 
@@ -71,13 +91,13 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ route }) => {
   const handleNextMatch = () => {
     navigation.reset({
       index: 0,
-      routes: [{ name: "Game" as never, params: { npcId, outfitManager } }],
+      routes: [{ name: "Game", params: { npcId, outfitManager } }],
     });
   };
 
   // Go to wardrobe
   const handleGoToWardrobe = () => {
-    navigation.navigate("Wardrobe" as never, { outfitManager } as never);
+    navigation.navigate("Wardrobe", { outfitManager });
   };
 
   // Get reward display name
@@ -100,14 +120,32 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ route }) => {
   // Get category display name
   const getCategoryName = (category: string): string => {
     switch (category) {
-      case "hair":
-        return "髮型";
+      case "face":
+        return "膚色";
+      case "ears":
+        return "耳朵";
+      case "eyebrows":
+        return "眉毛";
+      case "eyes":
+        return "眼睛";
+      case "mouth":
+        return "嘴巴";
       case "top":
         return "上衣";
+      case "topAccessory":
+        return "上衣配件";
       case "bottom":
         return "下身";
+      case "bottomAccessory":
+        return "下身配件";
+      case "socks":
+        return "襪子";
       case "shoes":
         return "鞋子";
+      case "belt":
+        return "皮帶";
+      case "handAccessory":
+        return "手部配件";
       case "accessory":
         return "配件";
       default:
@@ -154,28 +192,34 @@ const ResultScreen: React.FC<ResultScreenProps> = ({ route }) => {
             <Text style={styles.rewardName}>{getRewardDisplayName()}</Text>
 
             {playerReward.type !== "coins" && (
-              <OutfitPreview
+              <CharacterPreview
                 outfit={{
-                  hair:
-                    playerReward.type === "hair"
-                      ? (playerReward.value as string)
-                      : "hair_1",
+                  face: "default",
+                  ears: "default",
+                  eyebrows: "default",
+                  eyes: "default",
+                  mouth: "default",
                   top:
                     playerReward.type === "top"
                       ? (playerReward.value as string)
-                      : "top_1",
+                      : "default",
+                  topAccessory: "default",
                   bottom:
                     playerReward.type === "bottom"
                       ? (playerReward.value as string)
-                      : "bottom_1",
+                      : "default",
+                  bottomAccessory: "default",
+                  socks: "default",
                   shoes:
                     playerReward.type === "shoes"
                       ? (playerReward.value as string)
-                      : "shoes_1",
+                      : "default",
+                  belt: "default",
+                  handAccessory: "default",
                   accessory:
                     playerReward.type === "accessory"
                       ? (playerReward.value as string)
-                      : "accessory_1",
+                      : "default",
                 }}
                 size="small"
               />
